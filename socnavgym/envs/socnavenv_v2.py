@@ -3721,6 +3721,8 @@ class SocNavEnv_v2(gym.Env):
         for event in pygame.event.get():
             pass
         pygame.display.update()
+        # delay between rendered frames, set by rendering.milliseconds in the config
+        pygame.time.wait(self.MILLISECONDS)
 
 
     def record(self, path:str):
