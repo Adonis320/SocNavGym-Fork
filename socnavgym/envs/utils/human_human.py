@@ -28,8 +28,12 @@ class Human_Human_Interaction:
         noise=0,
         can_disperse=True,
         pos_noise_std=None,
-        angle_noise_std=None
+        angle_noise_std=None,
+        rng=None
         ) -> None:
+
+        # random generator (np.random.Generator); falls back to the global numpy RNG
+        self.rng = rng if rng is not None else np.random
 
         # center of interaction
         self.x = x
@@ -46,7 +50,7 @@ class Human_Human_Interaction:
         self.radius = radius
 
         self.humans:List[Human] = []
-        speed = random.uniform(0.0, MAX_HUMAN_SPEED)
+        speed = self.rng.uniform(0.0, MAX_HUMAN_SPEED)
 
         self.goal_radius = goal_radius
         self.goal_x = None
@@ -58,11 +62,11 @@ class Human_Human_Interaction:
 
         for _ in range(numOfHumans):
             if self.type == "stationary":
-                self.add_human(Human(speed=0, width=human_width, goal_radius=self.goal_radius, policy=random.choice(["orca", "sfm"]),
-                                type="static", pos_noise_std=pos_noise_std, angle_noise_std=angle_noise_std))
+                self.add_human(Human(speed=0, width=human_width, goal_radius=self.goal_radius, policy=("orca" if self.rng.random() < 0.5 else "sfm"),
+                                type="static", pos_noise_std=pos_noise_std, angle_noise_std=angle_noise_std, rng=rng))
             else:
-                self.add_human(Human(speed=speed, width=human_width, goal_radius=self.goal_radius, policy=random.choice(["orca", "sfm"]),
-                                pos_noise_std=pos_noise_std, angle_noise_std=angle_noise_std))
+                self.add_human(Human(speed=speed, width=human_width, goal_radius=self.goal_radius, policy=("orca" if self.rng.random() < 0.5 else "sfm"),
+                                pos_noise_std=pos_noise_std, angle_noise_std=angle_noise_std, rng=rng))
 
         # arranging all the humans around a circle
         self.arrange_humans()
@@ -95,18 +99,18 @@ class Human_Human_Interaction:
 
         if self.type == "moving":
             # theta chosen randomly between -pi to pi
-            orientation = (np.random.random()-0.5) * np.pi * 2
+            orientation = (self.rng.random()-0.5) * np.pi * 2
 
         for i in range(n):
             h = self.humans[i]
-            h.x = self.x + self.radius * np.cos(theta + (np.random.random()-0.5)*np.pi/7)
-            h.y = self.y + self.radius * np.sin(theta + (np.random.random()-0.5)*np.pi/7)
+            h.x = self.x + self.radius * np.cos(theta + (self.rng.random()-0.5)*np.pi/7)
+            h.y = self.y + self.radius * np.sin(theta + (self.rng.random()-0.5)*np.pi/7)
             h.initial_x = h.x
             h.initial_y = h.y
             
             if self.type == "stationary":
                 # humans would face the center as if talking to each other
-                h.orientation = theta - np.pi + (np.random.random()-0.5)*np.pi/7
+                h.orientation = theta - np.pi + (self.rng.random()-0.5)*np.pi/7
                 h.initial_orientation = h.orientation
 
             elif self.type == "moving":
@@ -183,13 +187,13 @@ class Human_Human_Interaction:
 
 
             for human in self.humans:
-                noise_x = np.random.normal(0, self.noise_variance)
-                noise_y = np.random.normal(0, self.noise_variance)
+                noise_x = self.rng.normal(0, self.noise_variance)
+                noise_y = self.rng.normal(0, self.noise_variance)
                 human_vel = (vel_human[0]+noise_x, vel_human[1]+noise_y)
 ### Hamna
 ### Hamna
 ### Hamna
-                personal_scale = np.random.uniform(1, 1.08)#_____ crowd nav
+                personal_scale = self.rng.uniform(1, 1.08)#_____ crowd nav
                 human_vel = (human_vel[0] * personal_scale, human_vel[1] * personal_scale)#___
 ### Hamna
 ### Hamna

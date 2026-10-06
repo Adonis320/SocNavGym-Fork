@@ -1,13 +1,13 @@
 import gymnasium as gym
 from gymnasium.spaces import Discrete
-from socnavgym.envs.socnavenv_v1 import SocNavEnv_v1
+from socnavgym.envs.socnavenv_v2 import SocNavEnv_v2
 import numpy as np
 
 
 class DiscreteActions(gym.ActionWrapper):
     """A wrapper class to take in discrete actions, and convert to continuous action space.
     """
-    def __init__(self, env: SocNavEnv_v1):
+    def __init__(self, env: SocNavEnv_v2):
         super().__init__(env)
         self.action_space = Discrete(7)
 

@@ -13,8 +13,10 @@ class Human_Laptop_Interaction:
     Class for Human-Laptop interaction
     """
 
-    def __init__(self, laptop:Laptop, distance, human_width, can_disperse=True, pos_noise_std=None, angle_noise_std=None) -> None:
+    def __init__(self, laptop:Laptop, distance, human_width, can_disperse=True, pos_noise_std=None, angle_noise_std=None, rng=None) -> None:
         self.name = "human-laptop-interaction"
+        # random generator (np.random.Generator); falls back to the global numpy RNG
+        self.rng = rng if rng is not None else np.random
         # laptop
         self.laptop = laptop
 
@@ -24,8 +26,8 @@ class Human_Laptop_Interaction:
         self.can_disperse = can_disperse
 
         # generating a human
-        self.human = Human(speed=0, width=human_width,policy=random.choice(["orca", "sfm"]), type="static",
-                            pos_noise_std=pos_noise_std, angle_noise_std=angle_noise_std)
+        self.human = Human(speed=0, width=human_width,policy=("orca" if self.rng.random() < 0.5 else "sfm"), type="static",
+                            pos_noise_std=pos_noise_std, angle_noise_std=angle_noise_std, rng=rng)
 
 
         # distance between the human and laptop centers

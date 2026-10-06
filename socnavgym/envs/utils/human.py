@@ -32,9 +32,12 @@ class Human(Object):
         type="dynamic",
         fov=2*np.pi,
         pos_noise_std=None,
-        angle_noise_std=None
+        angle_noise_std=None,
+        rng=None
     ) -> None:
         super().__init__(id, "human")
+        # random generator (np.random.Generator); falls back to the global numpy RNG
+        self.rng = rng if rng is not None else np.random
         self.width = None  # diameter of the human
         self.is_static = False  # humans can move, so is_static is False
         self.speed = 0  # linear speed
@@ -67,17 +70,17 @@ class Human(Object):
         self.last_step_y = y
 
         self.preferred_speed = speed if speed is not None else 0.0
-        self.goal_direction_bias = np.random.normal(0, 0.18)
+        self.goal_direction_bias = self.rng.normal(0, 0.18)
         self.vx = 0.0
         self.vy = 0.0
 
         self.estimated_w = 0.0
-        self.wander_angle =  np.random.uniform(-0.5, 0.5) #
+        self.wander_angle =  self.rng.uniform(-0.5, 0.5) #
         self.wander_strength = 0.4   # how much we bend (radians)
         self.wander_smooth = 0.7 #
-        self.turn_bias = np.random.normal(0, 0.03)
-        self.speed_scale = np.random.uniform(0.9, 1.1)
-        self.speed_phase = np.random.uniform(0, 2 * np.pi)
+        self.turn_bias = self.rng.normal(0, 0.03)
+        self.speed_scale = self.rng.uniform(0.9, 1.1)
+        self.speed_phase = self.rng.uniform(0, 2 * np.pi)
         assert(self.type == "static" or self.type == "dynamic"), "type can be \"static\" or \"dynamic\" only."
         self.set(id, x, y, theta, width, speed, goal_x, goal_y, goal_radius, policy)
 
@@ -113,8 +116,8 @@ class Human(Object):
         self.last_step_x = x
         self.last_step_y = y
         self.delayed_orientation = theta if theta is not None else 0.0
-        self.goal_direction_bias = np.random.normal(0, 0.18)
-        self.turn_bias = np.random.normal(0, 0.03)
+        self.goal_direction_bias = self.rng.normal(0, 0.18)
+        self.turn_bias = self.rng.normal(0, 0.03)
         self.estimated_w = 0.0
 
 
@@ -139,7 +142,7 @@ class Human(Object):
 
     @property
     def avoids_robot(self):
-        n = np.random.random()
+        n = self.rng.random()
         if n <= self.prob_to_avoid_robot:
             return True
         else:
@@ -196,16 +199,16 @@ class Human(Object):
         self.prev_y = self.y
         self.prev_orientation = self.orientation
 
-        if np.random.random() < self.update_skip_probability:
+        if self.rng.random() < self.update_skip_probability:
             self.position_history.append((self.x, self.y, self.orientation, pytime.time()))
             return
 
-        r_moved = np.random.normal(0, self.pos_noise_std)
+        r_moved = self.rng.normal(0, self.pos_noise_std)
         self.speed_phase += 0.15
         rhythmic_scale = 1.0 + 0.06 * np.sin(self.speed_phase)#_____
         moved = time * (self.speed * self.speed_scale * rhythmic_scale) + r_moved
 
-        r_angle = np.random.normal(0, self.angle_noise_std)
+        r_angle = self.rng.normal(0, self.angle_noise_std)
         self.initial_x = self.x
         self.initial_y = self.y
         self.initial_orientation = self.orientation
@@ -222,7 +225,7 @@ class Human(Object):
             delayed_theta = self.orientation
 
         self.delayed_orientation = delayed_theta
-        new_wander = np.random.normal(0, self.wander_strength)
+        new_wander = self.rng.normal(0, self.wander_strength)
         self.wander_angle = self.wander_smooth * self.wander_angle + (1 - self.wander_smooth) * new_wander
 
         wander_factor = min(1.0, max(0.35, self.speed / 0.6))

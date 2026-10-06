@@ -1,6 +1,5 @@
 import gymnasium as gym
 from gymnasium import spaces
-from socnavgym.envs.socnavenv_v1 import SocNavEnv_v1
 from socnavgym.envs.socnavenv_v2 import SocNavEnv_v2
 from socnavgym.envs.utils.wall import Wall
 import numpy as np

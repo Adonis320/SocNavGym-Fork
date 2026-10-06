@@ -1,6 +1,6 @@
 import gymnasium as gym
 from gymnasium import spaces
-from socnavgym.envs.socnavenv_v1 import SocNavEnv_v1
+from socnavgym.envs.socnavenv_v2 import SocNavEnv_v2
 from socnavgym.envs.utils.wall import Wall
 from socnavgym.envs.utils.utils import w2px, w2py
 import sys
@@ -11,7 +11,7 @@ import cv2
 import pygame
 
 class PartialObservations(gym.Wrapper):
-    def __init__(self, env: SocNavEnv_v1, fov_angle:float, range:float) -> None:
+    def __init__(self, env: SocNavEnv_v2, fov_angle:float, range:float) -> None:
         """
         Args:
             env (SocNavEnv_v1): environment to be wrapped
