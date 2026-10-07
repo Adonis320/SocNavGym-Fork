@@ -1855,7 +1855,7 @@ class SocNavEnv_v2(gym.Env):
             action = act.astype(np.float32)
             # action[0] = (float(action[0]+1.0)/2.0)*self.MAX_ADVANCE_ROBOT   # [-1, +1] --> [0, self.MAX_ADVANCE_ROBOT]
             if action[0]<0:
-                action[0] *= self.MIN_ADVANCE_ROBOT
+                action[0] *= -self.MIN_ADVANCE_ROBOT  # [-1, 0) --> [MIN_ADVANCE_ROBOT, 0) (MIN_ADVANCE_ROBOT <= 0)
             else:
                 action[0] *= self.MAX_ADVANCE_ROBOT
 
