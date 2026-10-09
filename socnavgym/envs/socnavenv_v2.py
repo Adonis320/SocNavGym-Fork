@@ -608,7 +608,11 @@ class SocNavEnv_v2(gym.Env):
 
 
         # adding Gaussian Noise to ORCA parameters
-        self.orca_neighborDist = 2*self.HUMAN_DIAMETER + self.rng_np.standard_normal()
+        # neighbour range must cover the largest combined radius (human + moving group) plus a look-ahead
+        # margin, otherwise humans only notice neighbours once they already overlap. The noise is clipped
+        # because rvo2 uses |neighborDist|, so values near 0 make humans ignore everyone.
+        min_neighbor_dist = self.HUMAN_DIAMETER/2 + (self.INTERACTION_RADIUS + self.HUMAN_DIAMETER) + 0.5
+        self.orca_neighborDist = max(min_neighbor_dist, 2*self.HUMAN_DIAMETER + np.clip(self.rng_np.standard_normal(), -1.0, 1.0))
         self.orca_timeHorizon = 5 + self.rng_np.standard_normal()
         self.orca_timeHorizonObst = 5 + self.rng_np.standard_normal()
         self.orca_maxSpeed = self.MAX_ADVANCE_HUMAN + self.rng_np.standard_normal()*0.01
