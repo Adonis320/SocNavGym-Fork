@@ -1267,6 +1267,24 @@ class SocNavEnv_v2(gym.Env):
 
         return velocity
 
+    # world-frame velocities passed to ORCA via setAgentVelocity (rvo2 agents otherwise start at (0, 0),
+    # which makes ORCA treat every neighbour as standing still)
+    @staticmethod
+    def _orca_human_velocity(human:Human):
+        return (float(human.speed * np.cos(human.orientation)), float(human.speed * np.sin(human.orientation)))
+
+    @staticmethod
+    def _orca_robot_velocity(robot:Robot):
+        # vel_x is along the heading, vel_y perpendicular to it (heading + pi/2)
+        cos_t, sin_t = np.cos(robot.orientation), np.sin(robot.orientation)
+        return (float(robot.vel_x * cos_t - robot.vel_y * sin_t), float(robot.vel_x * sin_t + robot.vel_y * cos_t))
+
+    @staticmethod
+    def _orca_interaction_velocity(interaction:Human_Human_Interaction):
+        if interaction.prev_group_velocity is None:
+            return (0.0, 0.0)
+        return (float(interaction.prev_group_velocity[0]), float(interaction.prev_group_velocity[1]))
+
     def compute_orca_velocity(self, human:Human):
         """
         This method takes in a human object, and computes the velocity using ORCA policy by taking into consideration only the entities that lie in the fov of the human
@@ -1341,6 +1359,7 @@ class SocNavEnv_v2(gym.Env):
         pref_vel *= self.MAX_ADVANCE_HUMAN
         # setting the preferred velocity
         sim.setAgentPrefVelocity(thisHuman, (pref_vel[0], pref_vel[1]))
+        sim.setAgentVelocity(thisHuman, self._orca_human_velocity(human))
 
 
         delay_steps = 1
@@ -1385,6 +1404,7 @@ class SocNavEnv_v2(gym.Env):
             pref_vel *= self.MAX_ADVANCE_HUMAN
             # setting the preferred velocity
             sim.setAgentPrefVelocity(h, (pref_vel[0], pref_vel[1]))
+            sim.setAgentVelocity(h, self._orca_human_velocity(other_human))
 
 
         # adding robot with a probability of avoiding the robot
@@ -1398,6 +1418,7 @@ class SocNavEnv_v2(gym.Env):
             pref_vel *= self.MAX_ADVANCE_ROBOT
             # setting preferred velocity
             sim.setAgentPrefVelocity(h, (pref_vel[0], pref_vel[1]))
+            sim.setAgentVelocity(h, self._orca_robot_velocity(self.robot))
 
         # adding visible moving interactions
         for i in visible_moving_interactions:
@@ -1409,6 +1430,7 @@ class SocNavEnv_v2(gym.Env):
                 pref_vel /= np.linalg.norm(pref_vel)
             pref_vel *= self.MAX_ADVANCE_HUMAN
             sim.setAgentPrefVelocity(h, (pref_vel[0], pref_vel[1]))
+            sim.setAgentVelocity(h, self._orca_interaction_velocity(i))
 
         # adding visible obstacles to the simulator
         for obj in visible_tables + visible_chairs + visible_laptops + visible_plants + visible_walls:
@@ -1485,6 +1507,7 @@ class SocNavEnv_v2(gym.Env):
         pref_vel *= self.MAX_ADVANCE_ROBOT
         # setting the preferred velocity
         sim.setAgentPrefVelocity(envRobot, (pref_vel[0], pref_vel[1]))
+        sim.setAgentVelocity(envRobot, self._orca_robot_velocity(robot))
 
         # adding visible humans as agents
         for other_human in visible_humans:
@@ -1519,6 +1542,7 @@ class SocNavEnv_v2(gym.Env):
             pref_vel *= self.MAX_ADVANCE_HUMAN
             # setting the preferred velocity
             sim.setAgentPrefVelocity(h, (pref_vel[0], pref_vel[1]))
+            sim.setAgentVelocity(h, self._orca_human_velocity(other_human))
 
         # adding visible moving interactions
         for i in visible_moving_interactions:
@@ -1530,6 +1554,7 @@ class SocNavEnv_v2(gym.Env):
                 pref_vel /= np.linalg.norm(pref_vel)
             pref_vel *= self.MAX_ADVANCE_HUMAN
             sim.setAgentPrefVelocity(h, (pref_vel[0], pref_vel[1]))
+            sim.setAgentVelocity(h, self._orca_interaction_velocity(i))
 
         # adding visible obstacles to the simulator
         for obj in visible_tables + visible_chairs + visible_laptops + visible_plants + visible_walls:
@@ -1621,6 +1646,7 @@ class SocNavEnv_v2(gym.Env):
                 pref_vel /= np.linalg.norm(pref_vel)
             pref_vel *= self.MAX_ADVANCE_HUMAN
             sim.setAgentPrefVelocity(h, (pref_vel[0], pref_vel[1]))
+            sim.setAgentVelocity(h, self._orca_human_velocity(other_human))
 
         for obj in self.tables + self.chairs + self.laptops + self.plants + self.walls:
             p = self.get_obstacle_corners(obj)
@@ -1644,6 +1670,7 @@ class SocNavEnv_v2(gym.Env):
                 pref_vel /= np.linalg.norm(pref_vel)
             pref_vel *= self.MAX_ADVANCE_HUMAN
             sim.setAgentPrefVelocity(h, (pref_vel[0], pref_vel[1]))
+            sim.setAgentVelocity(h, self._orca_interaction_velocity(i))
             interactionList.append(h)
 
         sim.processObstacles()
