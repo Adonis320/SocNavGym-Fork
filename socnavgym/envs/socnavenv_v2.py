@@ -1267,8 +1267,6 @@ class SocNavEnv_v2(gym.Env):
 
         return velocity
 
-    # world-frame velocities passed to ORCA via setAgentVelocity (rvo2 agents otherwise start at (0, 0),
-    # which makes ORCA treat every neighbour as standing still)
     @staticmethod
     def _orca_human_velocity(human:Human):
         return (float(human.speed * np.cos(human.orientation)), float(human.speed * np.sin(human.orientation)))
@@ -1410,6 +1408,8 @@ class SocNavEnv_v2(gym.Env):
         # adding robot with a probability of avoiding the robot
         if self.rng_np.random() <= human.prob_to_avoid_robot:
             h = sim.addAgent((self.robot.x, self.robot.y))
+            # the simulator's default radius is the human's, so set the robot's own
+            sim.setAgentRadius(h, self.ROBOT_RADIUS)
             # preferred velocity is towards the goal
             pref_vel = np.array([self.robot.goal_x-self.robot.x, self.robot.goal_y-self.robot.y], dtype=np.float32)
             # normalising the velocity
@@ -1499,6 +1499,9 @@ class SocNavEnv_v2(gym.Env):
 
         # adding the robot to the simulator
         envRobot = sim.addAgent((robot.x, robot.y))
+        # the simulator's defaults (radius, max speed) are the human's, so set the robot's own
+        sim.setAgentRadius(envRobot, self.ROBOT_RADIUS)
+        sim.setAgentMaxSpeed(envRobot, self.MAX_ADVANCE_ROBOT)
         # preferred velocity is towards the goal
         pref_vel = np.array([robot.goal_x-robot.x, robot.goal_y-robot.y], dtype=np.float32)
         # normalising the velocity
